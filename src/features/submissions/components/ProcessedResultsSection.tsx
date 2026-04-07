@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
+import { IconButton } from "@/components/Button/IconButton";
+import { SurfaceSection } from "@/components/Layout/SurfaceSection";
 import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 
 interface ProcessedResultsSectionProps {
@@ -25,16 +27,17 @@ export function ProcessedResultsSection({
   onRetry,
 }: ProcessedResultsSectionProps) {
   return (
-    <section className="bg-surface-container-lowest rounded-3xl p-8 shadow-sm border border-outline-variant/10" data-testid="processed-results">
-      <div className="flex items-center justify-between mb-8">
-        <h3 className="text-xl font-bold font-headline">Latest Results</h3>
-        {isLoading ? (
-          <span className="text-on-surface-variant text-sm">Refreshing...</span>
-        ) : null}
-      </div>
+    <SurfaceSection
+      dataTestId="processed-results"
+      headerAside={isLoading ? <span className="text-sm text-on-surface-variant">Refreshing...</span> : null}
+      title="Latest Results"
+    >
       <div className="space-y-4">
         {submissions.length === 0 ? (
-          <div className="text-center py-12 text-on-surface-variant" data-testid="processed-results-empty">
+          <div
+            className="py-12 text-center text-on-surface-variant"
+            data-testid="processed-results-empty"
+          >
             <p>No processed results yet.</p>
           </div>
         ) : (
@@ -102,25 +105,23 @@ export function ProcessedResultsSection({
                   </div>
                   <div className="ml-6 flex items-center gap-2">
                     {submission.results ? (
-                      <button
-                        className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors"
+                      <IconButton
                         data-testid={`view-results-${submission.id}`}
                         onClick={() => onOpenResults(submission.id)}
-                        type="button"
+                        variant="primary"
                       >
                         <Eye className="w-5 h-5" />
-                      </button>
+                      </IconButton>
                     ) : null}
                     {submission.canRetry ? (
-                      <button
-                        className="p-2 text-on-surface-variant hover:text-primary transition-colors disabled:opacity-35"
+                      <IconButton
                         data-testid={`retry-submission-${submission.id}`}
                         disabled={activeActionId === submission.id}
                         onClick={() => void onRetry(submission.id)}
-                        type="button"
+                        variant="subtle"
                       >
                         <RotateCcw className="w-5 h-5" />
-                      </button>
+                      </IconButton>
                     ) : null}
                   </div>
                 </div>
@@ -129,6 +130,6 @@ export function ProcessedResultsSection({
           </AnimatePresence>
         )}
       </div>
-    </section>
+    </SurfaceSection>
   );
 }

@@ -1,6 +1,9 @@
 import { BarChart3, FileText, Loader2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
+import { IconButton } from "@/components/Button/IconButton";
+import { ProgressBar } from "@/components/Feedback/ProgressBar";
+import { SurfaceSection } from "@/components/Layout/SurfaceSection";
 import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 
 interface ActiveQueueSectionProps {
@@ -19,13 +22,15 @@ export function ActiveQueueSection({
   }
 
   return (
-    <section className="bg-surface-container-lowest rounded-3xl p-8 shadow-sm border border-outline-variant/10" data-testid="active-queue">
-      <div className="flex items-center justify-between mb-8">
-        <h3 className="text-xl font-bold font-headline">Active Queue</h3>
-        <span className="bg-secondary-container text-on-secondary-container px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+    <SurfaceSection
+      dataTestId="active-queue"
+      headerAside={
+        <span className="rounded-full bg-secondary-container px-4 py-1 text-xs font-bold uppercase tracking-wider text-on-secondary-container">
           {submissions.length} {submissions.length === 1 ? "File" : "Files"} Processing
         </span>
-      </div>
+      }
+      title="Active Queue"
+    >
       <div className="space-y-4">
         <AnimatePresence mode="popLayout">
           {submissions.map((submission) => (
@@ -64,42 +69,39 @@ export function ActiveQueueSection({
                       : submission.status}
                   </span>
                 </div>
-                <div
-                  aria-label={`${submission.filename} progress`}
-                  aria-valuemax={100}
-                  aria-valuemin={0}
-                  aria-valuenow={submission.progress}
-                  className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden"
-                  data-testid={`progress-track-${submission.id}`}
-                  role="progressbar"
-                >
-                  <motion.div
-                    animate={{ width: `${submission.progress}%` }}
-                    className={
-                      submission.status === "processing"
-                        ? "h-full rounded-full bg-primary shimmer-bg"
-                        : submission.status === "queued"
-                          ? "h-full rounded-full bg-outline-variant/30"
-                          : "h-full rounded-full bg-secondary-container"
-                    }
-                    data-testid={`progress-fill-${submission.id}`}
-                    initial={{ width: 0 }}
-                  />
-                </div>
+                <ProgressBar
+                  fillTestId={`progress-fill-${submission.id}`}
+                  label={`${submission.filename} progress`}
+                  tone={getProgressTone(submission.status)}
+                  trackTestId={`progress-track-${submission.id}`}
+                  value={submission.progress}
+                />
               </div>
-              <button
-                className="ml-6 p-2 text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+              <IconButton
+                className="ml-6 opacity-0 group-hover:opacity-100 disabled:opacity-30"
                 data-testid={`cancel-submission-${submission.id}`}
                 disabled={!submission.canCancel || activeActionId === submission.id}
                 onClick={() => void onCancel(submission.id)}
-                type="button"
+                variant="danger"
               >
                 <X className="w-5 h-5" />
-              </button>
+              </IconButton>
             </motion.div>
           ))}
         </AnimatePresence>
       </div>
-    </section>
+    </SurfaceSection>
   );
+}
+
+function getProgressTone(status: DashboardSubmission["status"]) {
+  if (status === "processing") {
+    return "primary";
+  }
+
+  if (status === "queued") {
+    return "muted";
+  }
+
+  return "secondary";
 }

@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
+import { IconButton } from "@/components/Button/IconButton";
 import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 
 interface ResultsModalProps {
@@ -37,14 +38,13 @@ export function ResultsModal({ submission, onClose }: ResultsModalProps) {
                   Total observations: {submission.results.total}
                 </p>
               </div>
-              <button
-                className="p-2 rounded-full text-on-surface-variant hover:bg-surface-container-low"
+              <IconButton
                 data-testid="close-results-modal"
                 onClick={onClose}
-                type="button"
+                variant="neutral"
               >
                 <X className="w-5 h-5" />
-              </button>
+              </IconButton>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
