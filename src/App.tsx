@@ -1,0 +1,91 @@
+import { motion } from "motion/react";
+
+import { useDashboardState } from "@/client/useDashboardState";
+import { ActiveQueueSection } from "@/components/ActiveQueueSection";
+import { ProcessedResultsSection } from "@/components/ProcessedResultsSection";
+import { ResultsModal } from "@/components/ResultsModal";
+import { UploadZone } from "@/components/UploadZone";
+
+export function App() {
+  const {
+    activeActionId,
+    activeQueue,
+    closeResultsModal,
+    error,
+    isLoading,
+    isUploading,
+    message,
+    openResultsModal,
+    processedResults,
+    reportUploadError,
+    resultsSubmission,
+    submissions,
+    cancelSubmission,
+    retrySubmission,
+    uploadFile,
+  } = useDashboardState();
+
+  return (
+    <>
+      <div className="min-h-screen py-20 px-6 max-w-4xl mx-auto">
+        <header className="text-center mb-16">
+          <motion.h1
+            animate={{ opacity: 1, y: 0 }}
+            className="text-5xl font-extrabold font-headline tracking-tight text-on-surface mb-4"
+            initial={{ opacity: 0, y: -20 }}
+          >
+            Upload Test Results
+          </motion.h1>
+          <motion.p
+            animate={{ opacity: 1, y: 0 }}
+            className="text-on-surface-variant max-w-2xl mx-auto text-lg leading-relaxed"
+            initial={{ opacity: 0, y: -10 }}
+            transition={{ delay: 0.1 }}
+          >
+            Process dataset submissions asynchronously, monitor progress, and retry or cancel
+            where the lifecycle allows it.
+          </motion.p>
+        </header>
+
+        <div className="space-y-4 mb-8">
+          {message ? (
+            <div className="rounded-2xl border border-secondary-container bg-secondary-container/50 px-5 py-4 text-on-secondary-container" data-testid="notice-banner">
+              {message}
+            </div>
+          ) : null}
+          {error ? (
+            <div className="rounded-2xl border border-error-container bg-error-container/40 px-5 py-4 text-error" data-testid="error-banner">
+              {error}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="space-y-12">
+          <UploadZone
+            isUploading={isUploading}
+            onInvalidFile={reportUploadError}
+            onUpload={uploadFile}
+          />
+          <ActiveQueueSection
+            activeActionId={activeActionId}
+            onCancel={cancelSubmission}
+            submissions={activeQueue}
+          />
+          <ProcessedResultsSection
+            activeActionId={activeActionId}
+            isLoading={isLoading}
+            onOpenResults={openResultsModal}
+            onRetry={retrySubmission}
+            submissions={processedResults}
+          />
+        </div>
+
+        <footer className="mt-12 text-center text-sm text-on-surface-variant">
+          {submissions.length} submission{submissions.length === 1 ? "" : "s"} tracked
+        </footer>
+      </div>
+
+      <ResultsModal onClose={closeResultsModal} submission={resultsSubmission} />
+    </>
+  );
+}

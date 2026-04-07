@@ -1,0 +1,58 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #6444c5;
+  --color-primary-container: #7d5fe0;
+  --color-secondary-container: #e7deff;
+  --color-on-secondary-container: #5a4f80;
+  --color-surface: #fdf7ff;
+  --color-surface-container: #f2ebfb;
+  --color-surface-container-low: #f7f1fd;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-high: #ebe2f7;
+  --color-on-surface: #1c1a22;
+  --color-on-surface-variant: #494553;
+  --color-outline-variant: #cac4d5;
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --font-headline: "Manrope", sans-serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  @apply bg-surface font-sans text-on-surface antialiased;
+}
+
+button {
+  cursor: pointer;
+}
+
+.shimmer-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
