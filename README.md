@@ -8,7 +8,6 @@ Single-package dataset submission app with a Vite + React frontend, an Express A
 
 ## Run locally
 1. Install dependencies with `npm install`.
-2. Copy `.env.example` to `.env` if you want to override the defaults.
 3. Start the app and worker with `npm run dev`.
 4. Open `http://localhost:3000`.
 

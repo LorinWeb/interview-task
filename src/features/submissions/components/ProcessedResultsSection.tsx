@@ -27,7 +27,7 @@ export function ProcessedResultsSection({
   return (
     <section className="bg-surface-container-lowest rounded-3xl p-8 shadow-sm border border-outline-variant/10" data-testid="processed-results">
       <div className="flex items-center justify-between mb-8">
-        <h3 className="text-xl font-bold font-headline">Processed Results</h3>
+        <h3 className="text-xl font-bold font-headline">Latest Results</h3>
         {isLoading ? (
           <span className="text-on-surface-variant text-sm">Refreshing...</span>
         ) : null}
