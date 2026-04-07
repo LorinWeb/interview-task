@@ -6,6 +6,7 @@ import express, { type ErrorRequestHandler, type Express } from "express";
 import multer from "multer";
 
 import { getAppContext, type AppContext } from "@/server/app-context";
+import { reseedDemoData } from "@/server/dev/seed-data";
 import { HttpError } from "@/server/http-error";
 import {
   cancelDashboardSubmission,
@@ -26,6 +27,16 @@ export function createServerApp(options: CreateServerAppOptions = {}): Express {
   const upload = multer({ storage: multer.memoryStorage() });
 
   app.use(express.json());
+
+  if (process.env.NODE_ENV !== "production") {
+    app.post("/api/dev/seed", async (_request, response, next) => {
+      try {
+        response.json(await reseedDemoData(context));
+      } catch (error) {
+        next(error);
+      }
+    });
+  }
 
   app.get("/api/submissions", (_request, response, next) => {
     try {

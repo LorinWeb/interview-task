@@ -185,6 +185,33 @@ describe("server routes", () => {
       status: "queued",
     });
   });
+
+  it("replaces current submissions with seeded demo data through the dev seed route", async () => {
+    const { cleanup, context } = await createTestContext();
+    cleanups.push(cleanup);
+
+    const app = createServerApp({ context });
+    await uploadFixture(app, "valid-dataset.csv");
+
+    const seedResponse = await request(app).post("/api/dev/seed");
+
+    expect(seedResponse.status).toBe(200);
+    expect(seedResponse.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ filename: "seed-completed.csv", status: "completed" }),
+        expect.objectContaining({ filename: "seed-failed.csv", status: "failed" }),
+        expect.objectContaining({ filename: "seed-cancelled.csv", status: "cancelled" }),
+        expect.objectContaining({ filename: "seed-long-running.csv", status: "queued" }),
+        expect.objectContaining({ filename: "seed-queued.csv", status: "queued" }),
+      ]),
+    );
+
+    const listResponse = await request(app).get("/api/submissions");
+    expect(listResponse.body).toHaveLength(5);
+    expect(listResponse.body).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ filename: "valid-dataset.csv" })]),
+    );
+  });
 });
 
 async function uploadFixture(app: Express, fileName: string) {

@@ -1,3 +1,5 @@
+import { lazy, Suspense } from "react";
+
 import { motion } from "motion/react";
 
 import { useDashboardState } from "@/features/submissions/client/useDashboardState";
@@ -5,6 +7,12 @@ import { ActiveQueueSection } from "@/features/submissions/components/ActiveQueu
 import { ProcessedResultsSection } from "@/features/submissions/components/ProcessedResultsSection";
 import { ResultsModal } from "@/features/submissions/components/ResultsModal";
 import { UploadZone } from "@/features/submissions/components/UploadZone";
+
+const DevSeedButton = import.meta.env.DEV
+  ? lazy(async () => ({
+      default: (await import("@/app/DevSeedButton")).DevSeedButton,
+    }))
+  : null;
 
 export function App() {
   const {
@@ -18,6 +26,7 @@ export function App() {
     openResultsModal,
     processedResults,
     reportUploadError,
+    refreshSubmissions,
     resultsSubmission,
     submissions,
     cancelSubmission,
@@ -86,6 +95,12 @@ export function App() {
       </div>
 
       <ResultsModal onClose={closeResultsModal} submission={resultsSubmission} />
+
+      {DevSeedButton ? (
+        <Suspense fallback={null}>
+          <DevSeedButton onSeeded={refreshSubmissions} />
+        </Suspense>
+      ) : null}
     </>
   );
 }

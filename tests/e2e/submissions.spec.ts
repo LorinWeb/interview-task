@@ -28,6 +28,20 @@ test("shows the completed outcome summary in the results modal", async ({
   await expect(page.getByTestId("results-modal")).toHaveCount(0);
 });
 
+test("lets dev users seed demo data from the floating button", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("seed-data-button")).toBeVisible();
+
+  await page.getByTestId("seed-data-button").click();
+
+  await expect(page.getByTestId("processed-results")).toContainText("seed-completed.csv", {
+    timeout: 15000,
+  });
+  await expect(page.getByTestId("processed-results")).toContainText("seed-failed.csv");
+  await expect(page.getByTestId("processed-results")).toContainText("seed-cancelled.csv");
+  await expect(page.getByTestId("active-queue")).toContainText("seed-long-running.csv");
+});
+
 test("shows only the latest five processed results", async ({ page, request }) => {
   await waitForNoActiveSubmissions(request);
 

@@ -277,6 +277,7 @@ export function useDashboardState() {
     closeResultsModal: () => setResultsModalId(null),
     openResultsModal: (submissionId: string) => setResultsModalId(submissionId),
     reportUploadError,
+    refreshSubmissions,
     uploadFile: handleUpload,
     cancelSubmission: handleCancel,
     retrySubmission: handleRetry,
