@@ -1,6 +1,6 @@
-import { createEmptySummary } from "@/submissions/contracts";
+import { createEmptySummary } from "@/features/submissions/model/contracts";
 import type { AppContext } from "@/server/app-context";
-import { CsvValidationError, parseDatasetCsv } from "@/server/submissions/csv";
+import { CsvValidationError, parseDatasetCsv } from "@/features/submissions/server/csv";
 
 export type SleepFn = (durationMs: number) => Promise<void>;
 

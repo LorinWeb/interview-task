@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
-import type { DashboardSubmission } from "@/submissions/contracts";
+import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 
 interface ProcessedResultsSectionProps {
   activeActionId: string | null;

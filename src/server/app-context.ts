@@ -6,7 +6,7 @@ import Database from "better-sqlite3";
 import { assertSupportedDbSource, loadConfig, type AppConfig } from "@/server/config";
 import { initializeSchema } from "@/server/db/schema";
 import { LocalFileStorage } from "@/server/files/local-file-storage";
-import { SubmissionRepository } from "@/server/submissions/repository";
+import { SubmissionRepository } from "@/features/submissions/server/repository";
 
 export interface AppContext {
   config: AppConfig;

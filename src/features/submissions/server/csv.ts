@@ -1,6 +1,6 @@
 import { parse } from "csv-parse/sync";
 
-import type { DatasetLabel } from "@/submissions/contracts";
+import type { DatasetLabel } from "@/features/submissions/model/contracts";
 
 const allowedLabels = new Set<DatasetLabel>([
   "strong_match",

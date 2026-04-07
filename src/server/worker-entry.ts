@@ -1,5 +1,5 @@
 import { getAppContext } from "@/server/app-context";
-import { processNextQueuedAttempt } from "@/server/submissions/worker";
+import { processNextQueuedAttempt } from "@/features/submissions/server/worker";
 
 const context = getAppContext();
 

@@ -5,8 +5,8 @@ import {
   fetchSubmissions,
   retrySubmission,
   uploadSubmission,
-} from "@/client/api";
-import type { DashboardSubmission } from "@/submissions/contracts";
+} from "@/features/submissions/client/api";
+import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 
 export function useDashboardState() {
   const [submissions, setSubmissions] = useState<DashboardSubmission[]>([]);

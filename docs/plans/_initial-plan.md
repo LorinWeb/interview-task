@@ -8,7 +8,7 @@
 ## Why This Shape
 - The UI only needs one polished screen, so a lightweight SPA is enough.
 - A separate worker process keeps asynchronous processing explicit without introducing queue infrastructure too early.
-- Shared domain logic should live in `src/server` and `src/submissions` so the API and worker use the same rules.
+- Shared domain logic should live in `src/features/submissions` and `src/server` so the API and worker use the same rules.
 
 ## Product Surface
 - One page with:
@@ -83,11 +83,12 @@
 
 ## Repository Structure
 - `server.ts`: Express server and frontend hosting
-- `src/main.tsx`, `src/App.tsx`, `src/components/*`: frontend
-- `src/client/*`: browser API/state wiring
-- `src/server/submissions/*`: CSV, repository, service, worker logic
-- `src/server/app-context.ts`: runtime wiring
-- `src/submissions/contracts.ts`: shared domain types
+- `src/app/*`: frontend entrypoint and app shell
+- `src/features/submissions/components/*`: submission UI components
+- `src/features/submissions/client/*`: browser API/state wiring
+- `src/features/submissions/model/*`: shared domain types
+- `src/features/submissions/server/*`: CSV, repository, service, worker logic
+- `src/server/*`: runtime wiring and infrastructure
 - `tests/integration/*`: API-level behavioral tests
 - `tests/e2e/*`: browser behavioral tests
 

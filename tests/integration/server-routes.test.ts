@@ -4,8 +4,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import request from "supertest";
 
 import { createServerApp } from "../../server";
-import { processNextQueuedAttempt } from "@/server/submissions/worker";
-import type { DashboardSubmission } from "@/submissions/contracts";
+import { processNextQueuedAttempt } from "@/features/submissions/server/worker";
+import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 import { createTestContext } from "../support/test-context";
 
 const cleanups: Array<() => Promise<void>> = [];

@@ -6,7 +6,7 @@ import type {
   SubmissionAttempt,
   SubmissionDetail,
   SubmissionSummary,
-} from "@/submissions/contracts";
+} from "@/features/submissions/model/contracts";
 
 async function createSubmissionFromUpload(context: AppContext, file: File) {
   const storedFileKey = await context.storage.saveUpload(file);

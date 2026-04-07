@@ -1,4 +1,4 @@
-import type { DashboardSubmission } from "@/submissions/contracts";
+import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 
 export async function fetchSubmissions() {
   return requestJson<DashboardSubmission[]>("/api/submissions");

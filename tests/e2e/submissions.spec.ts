@@ -7,7 +7,7 @@ import {
   type APIRequestContext,
 } from "@playwright/test";
 
-import type { DashboardSubmission } from "@/submissions/contracts";
+import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 
 test("shows the completed outcome summary in the results modal", async ({
   page,

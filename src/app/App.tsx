@@ -1,10 +1,10 @@
 import { motion } from "motion/react";
 
-import { useDashboardState } from "@/client/useDashboardState";
-import { ActiveQueueSection } from "@/components/ActiveQueueSection";
-import { ProcessedResultsSection } from "@/components/ProcessedResultsSection";
-import { ResultsModal } from "@/components/ResultsModal";
-import { UploadZone } from "@/components/UploadZone";
+import { useDashboardState } from "@/features/submissions/client/useDashboardState";
+import { ActiveQueueSection } from "@/features/submissions/components/ActiveQueueSection";
+import { ProcessedResultsSection } from "@/features/submissions/components/ProcessedResultsSection";
+import { ResultsModal } from "@/features/submissions/components/ResultsModal";
+import { UploadZone } from "@/features/submissions/components/UploadZone";
 
 export function App() {
   const {

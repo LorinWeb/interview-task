@@ -1,7 +1,7 @@
 import { BarChart3, FileText, Loader2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
-import type { DashboardSubmission } from "@/submissions/contracts";
+import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 
 interface ActiveQueueSectionProps {
   activeActionId: string | null;

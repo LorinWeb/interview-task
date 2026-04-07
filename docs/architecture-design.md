@@ -3,7 +3,10 @@
 ## Architecture
 - Single-package Vite + React frontend served by an Express server in `server.ts`.
 - Separate worker runtime in `src/server/worker-entry.ts`, started alongside the web server by the root scripts.
-- Shared domain logic lives in `src/server` and `src/submissions` so the UI, API handlers, and worker all use the same lifecycle rules.
+- Source code is split by responsibility:
+  - app shell in `src/app`
+  - submission feature logic in `src/features/submissions`
+  - runtime infrastructure in `src/server`
 - Local persistence uses SQLite plus filesystem-backed upload storage. Uploaded filenames are kept as metadata; stored files use generated keys.
 
 ## Key Assumptions

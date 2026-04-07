@@ -20,6 +20,11 @@ Single-package dataset submission app with a Vite + React frontend, an Express A
 - `npm test`: run the Vitest suite.
 - `npm run test:e2e`: run the Playwright suite against the app.
 
+## Source Layout
+- `src/app`: app shell, entrypoint, and global styles
+- `src/features/submissions`: submission UI, client, model, and server logic
+- `src/server`: runtime wiring, config, database bootstrap, and file storage
+
 ## Environment
 - `PORT`: web server port. Defaults to `3000`.
 - `DB_SOURCE`: `local` or `remote`. `remote` is reserved and intentionally fails fast in v1.
