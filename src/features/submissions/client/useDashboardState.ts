@@ -10,6 +10,7 @@ import type { DashboardSubmission } from "@/features/submissions/model/contracts
 
 const ACTIVE_SUBMISSION_POLL_INTERVAL_MS = 1000;
 const COMPLETION_EXIT_DELAY_MS = 1000;
+const MAX_VISIBLE_PROCESSED_RESULTS = 5;
 
 export function useDashboardState() {
   const [submissions, setSubmissions] = useState<DashboardSubmission[]>([]);
@@ -154,7 +155,7 @@ export function useDashboardState() {
         (submission) =>
           ["completed", "failed", "cancelled"].includes(submission.status) &&
           !completingSubmissionIds[submission.id],
-      ),
+      ).slice(0, MAX_VISIBLE_PROCESSED_RESULTS),
     [completingSubmissionIds, submissions],
   );
   const shouldPollSubmissions = submissions.some(

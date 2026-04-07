@@ -28,6 +28,27 @@ test("shows the completed outcome summary in the results modal", async ({
   await expect(page.getByTestId("results-modal")).toHaveCount(0);
 });
 
+test("shows only the latest five processed results", async ({ page, request }) => {
+  await waitForNoActiveSubmissions(request);
+
+  const createdSubmissionIds: string[] = [];
+
+  for (let index = 1; index <= 6; index += 1) {
+    const submission = await uploadFixture(request, "valid-dataset.csv", `processed-limit-${index}.csv`);
+    createdSubmissionIds.push(submission.id);
+    await waitForSubmissionStatus(request, submission.id, "completed");
+  }
+
+  await page.goto("/");
+
+  await expect(page.locator('[data-testid^="processed-submission-"]')).toHaveCount(5);
+  await expect(page.getByTestId(`processed-submission-${createdSubmissionIds[0]}`)).toHaveCount(0);
+
+  for (const submissionId of createdSubmissionIds.slice(1)) {
+    await expect(page.getByTestId(`processed-submission-${submissionId}`)).toBeVisible();
+  }
+});
+
 test("allows uploading the same file again without refreshing", async ({
   page,
   request,
@@ -269,13 +290,17 @@ test("rejects non-CSV files before upload", async ({ page, request }) => {
   });
 });
 
-async function uploadFixture(request: APIRequestContext, fileName: string) {
+async function uploadFixture(
+  request: APIRequestContext,
+  fixtureFileName: string,
+  uploadFileName = fixtureFileName,
+) {
   const response = await request.post("/api/upload", {
     multipart: {
       file: {
-        buffer: await readFile(join(process.cwd(), "tests", "fixtures", fileName)),
+        buffer: await readFile(join(process.cwd(), "tests", "fixtures", fixtureFileName)),
         mimeType: "text/csv",
-        name: fileName,
+        name: uploadFileName,
       },
     },
   });
