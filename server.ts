@@ -1,3 +1,4 @@
+import { createServer, type Server as HttpServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -90,23 +91,40 @@ export function createServerApp(options: CreateServerAppOptions = {}): Express {
 export async function startServer() {
   const port = parsePort(process.env.PORT);
   const app = createServerApp({ includeErrorHandler: false });
+  const httpServer = createServer(app);
 
-  await attachFrontend(app);
+  await attachFrontend(app, httpServer);
   app.use(errorHandler);
 
-  return new Promise<Express>((resolve) => {
-    app.listen(port, "0.0.0.0", () => {
+  return new Promise<HttpServer>((resolve, reject) => {
+    httpServer.once("error", (error) => {
+      if (isAddressInUseError(error)) {
+        reject(
+          new Error(
+            `Port ${port} is already in use. Stop the existing process or start the app with PORT set to a different value.`,
+          ),
+        );
+        return;
+      }
+
+      reject(error);
+    });
+
+    httpServer.listen(port, "0.0.0.0", () => {
       console.log(`Server running on http://localhost:${port}`);
-      resolve(app);
+      resolve(httpServer);
     });
   });
 }
 
-async function attachFrontend(app: Express) {
+async function attachFrontend(app: Express, httpServer: HttpServer) {
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        hmr: { server: httpServer },
+        middlewareMode: true,
+      },
       appType: "spa",
     });
 
@@ -147,6 +165,10 @@ function parsePort(rawValue: string | undefined) {
   }
 
   return parsed;
+}
+
+function isAddressInUseError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EADDRINUSE";
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {

@@ -12,10 +12,8 @@ Single-package dataset submission app with a Vite + React frontend, an Express A
 3. Open `http://localhost:3000`.
 
 ## Scripts
-- `npm run dev`: wipe local runtime data and start the Express server and worker.
+- `npm run dev`: clear local runtime data, then start the Express server and worker.
 - `npm run build`: build the Vite frontend into `dist/`.
-- `npm run reset:runtime`: wipe local runtime data without starting the app.
-- `npm run seed:data`: recreate the demo submissions in the current local runtime.
 - `npm run start`: run the production server and worker together.
 - `npm run typecheck`: run TypeScript without emitting files.
 - `npm test`: run the Vitest suite.
@@ -41,8 +39,6 @@ Single-package dataset submission app with a Vite + React frontend, an Express A
 - Submission retries create a new attempt internally, but the UI keeps the surface submission-centric.
 
 ## Seeded Demo Data
-`npm run dev` always starts from a clean runtime.
-
 In development, the app shows a floating `Seed Data` button at the bottom right. Clicking it recreates the demo submissions from `tests/fixtures`:
 - `seed-queued.csv`
 - `seed-long-running.csv`
@@ -50,4 +46,5 @@ In development, the app shows a floating `Seed Data` button at the bottom right.
 - `seed-failed.csv`
 - `seed-cancelled.csv`
 
-The button is only loaded in dev builds. `npm run seed:data` is still available as a manual reset helper if you want the same seeded data without using the UI.
+The button is only loaded in dev builds.
+`npm run dev` still starts from a clean runtime before the app boots.

@@ -1,5 +1,5 @@
 import { mkdir, readFile, rm } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
 
 import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 import {
@@ -9,14 +9,8 @@ import {
 } from "@/features/submissions/server/service";
 import { processNextQueuedAttempt } from "@/features/submissions/server/worker";
 import type { AppContext } from "@/server/app-context";
-import type { AppConfig } from "@/server/config";
 
 const FIXTURES_DIR = resolve(process.cwd(), "tests", "fixtures");
-
-export async function resetRuntimeFiles(config: Pick<AppConfig, "localDbPath" | "uploadsDir">) {
-  await rm(dirname(config.localDbPath), { force: true, recursive: true });
-  await rm(config.uploadsDir, { force: true, recursive: true });
-}
 
 export async function reseedDemoData(context: AppContext) {
   await clearRuntimeData(context);

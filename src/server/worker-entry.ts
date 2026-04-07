@@ -4,10 +4,12 @@ import { processNextQueuedAttempt } from "@/features/submissions/server/worker";
 const context = getAppContext();
 
 let keepRunning = true;
+let interruptIdleWait: (() => void) | null = null;
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.on(signal, () => {
     keepRunning = false;
+    interruptIdleWait?.();
   });
 }
 
@@ -16,7 +18,7 @@ async function main() {
     const submissionId = await processNextQueuedAttempt(context);
 
     if (!submissionId) {
-      await wait(context.config.workerPollIntervalMs);
+      await waitForNextPoll(context.config.workerPollIntervalMs);
     }
   }
 
@@ -28,8 +30,22 @@ main().catch((error) => {
   process.exitCode = 1;
 });
 
-function wait(durationMs: number) {
+function waitForNextPoll(durationMs: number) {
   return new Promise((resolve) => {
-    setTimeout(resolve, durationMs);
+    if (!keepRunning) {
+      resolve(undefined);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      interruptIdleWait = null;
+      resolve(undefined);
+    }, durationMs);
+
+    interruptIdleWait = () => {
+      clearTimeout(timeoutId);
+      interruptIdleWait = null;
+      resolve(undefined);
+    };
   });
 }

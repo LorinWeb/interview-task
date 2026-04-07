@@ -1,16 +1,16 @@
+import { rm } from "node:fs/promises";
+import { dirname } from "node:path";
+
 import { loadConfig } from "@/server/config";
-import { resetRuntimeFiles } from "@/server/dev/seed-data";
 
 async function main() {
   const config = loadConfig();
 
-  await resetRuntimeFiles(config);
-
-  console.log(`Reset runtime data at ${config.localDbPath}`);
-  console.log(`Reset uploaded files at ${config.uploadsDir}`);
+  await rm(dirname(config.localDbPath), { force: true, recursive: true });
+  await rm(config.uploadsDir, { force: true, recursive: true });
 }
 
 main().catch((error) => {
-  console.error("[reset:runtime] Failed to clear runtime data", error);
+  console.error("[reset-runtime] Failed to clear runtime data", error);
   process.exitCode = 1;
 });
