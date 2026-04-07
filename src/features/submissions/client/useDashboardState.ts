@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import {
   cancelSubmission,
@@ -8,6 +8,9 @@ import {
 } from "@/features/submissions/client/api";
 import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 
+const ACTIVE_SUBMISSION_POLL_INTERVAL_MS = 1000;
+const COMPLETION_EXIT_DELAY_MS = 1000;
+
 export function useDashboardState() {
   const [submissions, setSubmissions] = useState<DashboardSubmission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,6 +19,10 @@ export function useDashboardState() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [resultsModalId, setResultsModalId] = useState<string | null>(null);
+  const [completingSubmissionIds, setCompletingSubmissionIds] = useState<Record<string, number>>(
+    {},
+  );
+  const previousSubmissionsRef = useRef<DashboardSubmission[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -48,20 +55,107 @@ export function useDashboardState() {
     };
   }, []);
 
+  useLayoutEffect(() => {
+    const previousSubmissions = previousSubmissionsRef.current;
+    const previousById = new Map(previousSubmissions.map((submission) => [submission.id, submission]));
+
+    setCompletingSubmissionIds((current) => {
+      const next = { ...current };
+      let changed = false;
+
+      for (const submission of submissions) {
+        const previous = previousById.get(submission.id);
+        const completedAfterBeingActive =
+          submission.status === "completed" &&
+          previous &&
+          ["queued", "processing", "cancelling"].includes(previous.status);
+
+        if (completedAfterBeingActive && !next[submission.id]) {
+          next[submission.id] = Date.now() + COMPLETION_EXIT_DELAY_MS;
+          changed = true;
+        }
+
+        if (submission.status !== "completed" && next[submission.id]) {
+          delete next[submission.id];
+          changed = true;
+        }
+      }
+
+      for (const submissionId of Object.keys(next)) {
+        if (!submissions.some((submission) => submission.id === submissionId)) {
+          delete next[submissionId];
+          changed = true;
+        }
+      }
+
+      return changed ? next : current;
+    });
+
+    previousSubmissionsRef.current = submissions;
+  }, [submissions]);
+
+  useEffect(() => {
+    const expiryTimes = Object.values(completingSubmissionIds);
+
+    if (expiryTimes.length === 0) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const now = Date.now();
+
+      setCompletingSubmissionIds((current) => {
+        const next = { ...current };
+        let changed = false;
+
+        for (const [submissionId, expiresAt] of Object.entries(current)) {
+          if (expiresAt <= now) {
+            delete next[submissionId];
+            changed = true;
+          }
+        }
+
+        return changed ? next : current;
+      });
+    }, Math.max(0, Math.min(...expiryTimes) - Date.now()));
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [completingSubmissionIds]);
+
   const activeQueue = useMemo(
     () =>
-      submissions.filter((submission) =>
-        ["queued", "processing", "cancelling"].includes(submission.status),
-      ),
-    [submissions],
+      submissions.flatMap((submission) => {
+        if (["queued", "processing", "cancelling"].includes(submission.status)) {
+          return [submission];
+        }
+
+        if (submission.status === "completed" && completingSubmissionIds[submission.id]) {
+          return [
+            {
+              ...submission,
+              canCancel: false,
+              canRetry: false,
+              progress: 100,
+              status: "processing" as const,
+            },
+          ];
+        }
+
+        return [];
+      }),
+    [completingSubmissionIds, submissions],
   );
 
   const processedResults = useMemo(
     () =>
-      submissions.filter((submission) =>
-        ["completed", "failed", "cancelled"].includes(submission.status),
+      submissions.filter(
+        (submission) =>
+          ["completed", "failed", "cancelled"].includes(submission.status) &&
+          !completingSubmissionIds[submission.id],
       ),
-    [submissions],
+    [completingSubmissionIds, submissions],
   );
   const shouldPollSubmissions = submissions.some(
     (submission) =>
@@ -84,25 +178,27 @@ export function useDashboardState() {
     }
 
     let isMounted = true;
+    const pollSubmissions = async () => {
+      try {
+        const nextSubmissions = await fetchSubmissions();
 
-    const intervalId = window.setInterval(() => {
-      void (async () => {
-        try {
-          const nextSubmissions = await fetchSubmissions();
-
-          if (!isMounted) {
-            return;
-          }
-
-          setError(null);
-          setSubmissions(nextSubmissions);
-        } catch (requestError) {
-          if (isMounted) {
-            setError(getErrorMessage(requestError));
-          }
+        if (!isMounted) {
+          return;
         }
-      })();
-    }, 3000);
+
+        setError(null);
+        setSubmissions(nextSubmissions);
+      } catch (requestError) {
+        if (isMounted) {
+          setError(getErrorMessage(requestError));
+        }
+      }
+    };
+
+    void pollSubmissions();
+    const intervalId = window.setInterval(() => {
+      void pollSubmissions();
+    }, ACTIVE_SUBMISSION_POLL_INTERVAL_MS);
 
     return () => {
       isMounted = false;

@@ -64,7 +64,15 @@ export function ActiveQueueSection({
                       : submission.status}
                   </span>
                 </div>
-                <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+                <div
+                  aria-label={`${submission.filename} progress`}
+                  aria-valuemax={100}
+                  aria-valuemin={0}
+                  aria-valuenow={submission.progress}
+                  className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden"
+                  data-testid={`progress-track-${submission.id}`}
+                  role="progressbar"
+                >
                   <motion.div
                     animate={{ width: `${submission.progress}%` }}
                     className={
@@ -74,6 +82,7 @@ export function ActiveQueueSection({
                           ? "h-full rounded-full bg-outline-variant/30"
                           : "h-full rounded-full bg-secondary-container"
                     }
+                    data-testid={`progress-fill-${submission.id}`}
                     initial={{ width: 0 }}
                   />
                 </div>
