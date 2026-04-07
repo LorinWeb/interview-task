@@ -1,60 +1,28 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import {
-  cancelSubmission,
-  fetchSubmissions,
-  retrySubmission,
-  uploadSubmission,
-} from "@/features/submissions/client/api";
-import type { DashboardSubmission } from "@/features/submissions/model/contracts";
+import { cancelSubmission, retrySubmission, uploadSubmission } from "@/api/client";
+import type { DashboardSubmission } from "@/api/types";
+import { submissionsQueryKey, submissionsQueryOptions } from "@/features/submissions/queries";
 
-const ACTIVE_SUBMISSION_POLL_INTERVAL_MS = 1000;
 const COMPLETION_EXIT_DELAY_MS = 1000;
 const MAX_VISIBLE_PROCESSED_RESULTS = 5;
 
 export function useDashboardState() {
-  const [submissions, setSubmissions] = useState<DashboardSubmission[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
+  const queryClient = useQueryClient();
   const [activeActionId, setActiveActionId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [clientError, setClientError] = useState<string | null>(null);
   const [resultsModalId, setResultsModalId] = useState<string | null>(null);
   const [completingSubmissionIds, setCompletingSubmissionIds] = useState<Record<string, number>>(
     {},
   );
   const previousSubmissionsRef = useRef<DashboardSubmission[]>([]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadSubmissions(markLoaded = false) {
-      try {
-        const nextSubmissions = await fetchSubmissions();
-
-        if (!isMounted) {
-          return;
-        }
-
-        setError(null);
-        setSubmissions(nextSubmissions);
-      } catch (requestError) {
-        if (isMounted) {
-          setError(getErrorMessage(requestError));
-        }
-      } finally {
-        if (isMounted && markLoaded) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    void loadSubmissions(true);
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const submissionsQuery = useQuery(submissionsQueryOptions);
+  const uploadMutation = useMutation({ mutationFn: uploadSubmission });
+  const cancelMutation = useMutation({ mutationFn: cancelSubmission });
+  const retryMutation = useMutation({ mutationFn: retrySubmission });
+  const submissions = submissionsQuery.data ?? [];
 
   useLayoutEffect(() => {
     const previousSubmissions = previousSubmissionsRef.current;
@@ -69,7 +37,7 @@ export function useDashboardState() {
         const completedAfterBeingActive =
           submission.status === "completed" &&
           previous &&
-          ["queued", "processing", "cancelling"].includes(previous.status);
+          ["queued", "processing"].includes(previous.status);
 
         if (completedAfterBeingActive && !next[submission.id]) {
           next[submission.id] = Date.now() + COMPLETION_EXIT_DELAY_MS;
@@ -128,7 +96,7 @@ export function useDashboardState() {
   const activeQueue = useMemo(
     () =>
       submissions.flatMap((submission) => {
-        if (["queued", "processing", "cancelling"].includes(submission.status)) {
+        if (["queued", "processing"].includes(submission.status)) {
           return [submission];
         }
 
@@ -158,13 +126,6 @@ export function useDashboardState() {
       ).slice(0, MAX_VISIBLE_PROCESSED_RESULTS),
     [completingSubmissionIds, submissions],
   );
-  const shouldPollSubmissions = submissions.some(
-    (submission) =>
-      submission.status === "queued" ||
-      submission.status === "processing" ||
-      (submission.status === "cancelled" && !submission.canRetry),
-  );
-
   const resultsSubmission = useMemo(
     () =>
       submissions.find(
@@ -173,103 +134,67 @@ export function useDashboardState() {
     [resultsModalId, submissions],
   );
 
-  useEffect(() => {
-    if (!shouldPollSubmissions) {
-      return;
-    }
-
-    let isMounted = true;
-    const pollSubmissions = async () => {
-      try {
-        const nextSubmissions = await fetchSubmissions();
-
-        if (!isMounted) {
-          return;
-        }
-
-        setError(null);
-        setSubmissions(nextSubmissions);
-      } catch (requestError) {
-        if (isMounted) {
-          setError(getErrorMessage(requestError));
-        }
-      }
-    };
-
-    void pollSubmissions();
-    const intervalId = window.setInterval(() => {
-      void pollSubmissions();
-    }, ACTIVE_SUBMISSION_POLL_INTERVAL_MS);
-
-    return () => {
-      isMounted = false;
-      window.clearInterval(intervalId);
-    };
-  }, [shouldPollSubmissions]);
-
   async function handleUpload(file: File) {
-    setError(null);
+    setClientError(null);
     setMessage(null);
-    setIsUploading(true);
 
     try {
-      const created = await uploadSubmission(file);
+      const created = await uploadMutation.mutateAsync(file);
       setMessage(`Queued ${created.filename} for background processing.`);
       await refreshSubmissions();
     } catch (requestError) {
-      setError(getErrorMessage(requestError));
-    } finally {
-      setIsUploading(false);
+      setClientError(getErrorMessage(requestError));
     }
   }
 
   async function handleCancel(submissionId: string) {
-    setError(null);
+    setClientError(null);
     setMessage(null);
     setActiveActionId(submissionId);
 
     try {
-      await cancelSubmission(submissionId);
+      await cancelMutation.mutateAsync(submissionId);
       setMessage("Cancellation requested.");
       await refreshSubmissions();
     } catch (requestError) {
-      setError(getErrorMessage(requestError));
+      setClientError(getErrorMessage(requestError));
     } finally {
       setActiveActionId(null);
     }
   }
 
   async function handleRetry(submissionId: string) {
-    setError(null);
+    setClientError(null);
     setMessage(null);
     setActiveActionId(submissionId);
 
     try {
-      await retrySubmission(submissionId);
+      await retryMutation.mutateAsync(submissionId);
       setMessage("Retry queued.");
       await refreshSubmissions();
     } catch (requestError) {
-      setError(getErrorMessage(requestError));
+      setClientError(getErrorMessage(requestError));
     } finally {
       setActiveActionId(null);
     }
   }
 
   async function refreshSubmissions() {
-    setSubmissions(await fetchSubmissions());
+    await queryClient.invalidateQueries({ queryKey: submissionsQueryKey });
+    await submissionsQuery.refetch();
   }
 
   function reportUploadError(message: string) {
     setMessage(null);
-    setError(message);
+    setClientError(message);
   }
 
   return {
     activeActionId,
     activeQueue,
-    error,
-    isLoading,
-    isUploading,
+    error: clientError ?? getErrorMessage(submissionsQuery.error),
+    isLoading: submissionsQuery.isFetching,
+    isUploading: uploadMutation.isPending,
     message,
     processedResults,
     resultsSubmission,
@@ -285,5 +210,9 @@ export function useDashboardState() {
 }
 
 function getErrorMessage(error: unknown) {
+  if (!error) {
+    return null;
+  }
+
   return error instanceof Error ? error.message : "The request failed.";
 }

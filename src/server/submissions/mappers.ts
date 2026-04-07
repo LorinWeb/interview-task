@@ -6,7 +6,7 @@ import {
   type SubmissionDetail,
   type SubmissionStatus,
   type SubmissionSummary,
-} from "@/features/submissions/model/contracts";
+} from "@/server/submissions/types";
 
 export interface SubmissionRow {
   id: string;

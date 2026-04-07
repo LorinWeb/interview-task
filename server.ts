@@ -14,7 +14,7 @@ import {
   createDashboardSubmissionFromUpload,
   listDashboardSubmissions,
   retryDashboardSubmission,
-} from "@/features/submissions/server/service";
+} from "@/server/submissions/service";
 
 interface CreateServerAppOptions {
   context?: AppContext;

@@ -7,9 +7,9 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
+import type { DashboardSubmission } from "@/api/types";
 import { IconButton } from "@/components/Button/IconButton";
 import { SurfaceSection } from "@/components/Layout/SurfaceSection";
-import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 
 interface ProcessedResultsSectionProps {
   activeActionId: string | null;

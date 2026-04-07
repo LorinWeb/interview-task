@@ -1,0 +1,171 @@
+openapi: 3.1.0
+info:
+  title: Interview Task API
+  version: 1.0.0
+paths:
+  /api/submissions:
+    get:
+      operationId: listSubmissions
+      responses:
+        "200":
+          description: The latest submission view for the dashboard.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DashboardSubmission"
+  /api/upload:
+    post:
+      operationId: uploadSubmission
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "202":
+          description: Submission accepted for background processing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSubmission"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/submissions/{id}/cancel:
+    post:
+      operationId: cancelSubmission
+      parameters:
+        - $ref: "#/components/parameters/SubmissionId"
+      responses:
+        "200":
+          description: Submission cancellation acknowledged.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSubmission"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/submissions/{id}/retry:
+    post:
+      operationId: retrySubmission
+      parameters:
+        - $ref: "#/components/parameters/SubmissionId"
+      responses:
+        "200":
+          description: Submission retry queued.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSubmission"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/dev/seed:
+    post:
+      operationId: seedDemoData
+      responses:
+        "200":
+          description: Demo submissions recreated.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DashboardSubmission"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+components:
+  parameters:
+    SubmissionId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+  responses:
+    ErrorResponse:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+    DashboardResults:
+      type: object
+      required:
+        - strong_match
+        - good_match
+        - weak_match
+        - failed_to_process
+        - total
+      properties:
+        strong_match:
+          type: integer
+        good_match:
+          type: integer
+        weak_match:
+          type: integer
+        failed_to_process:
+          type: integer
+        total:
+          type: integer
+    DashboardSubmission:
+      type: object
+      required:
+        - id
+        - filename
+        - status
+        - progress
+        - createdAt
+        - canCancel
+        - canRetry
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        status:
+          type: string
+          enum:
+            - queued
+            - processing
+            - completed
+            - failed
+            - cancelled
+        progress:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        canCancel:
+          type: boolean
+        canRetry:
+          type: boolean
+        error:
+          type: string
+        results:
+          $ref: "#/components/schemas/DashboardResults"

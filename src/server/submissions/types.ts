@@ -12,19 +12,6 @@ export type SubmissionStatus =
   | "cancelled";
 export type FailureKind = "validation" | "transient" | "system" | "cancelled";
 export type DatasetSummary = Record<DatasetLabel, number>;
-export type DashboardResults = DatasetSummary & { total: number };
-
-export interface DashboardSubmission {
-  id: string;
-  filename: string;
-  status: SubmissionStatus;
-  progress: number;
-  createdAt: string;
-  canCancel: boolean;
-  canRetry: boolean;
-  error?: string;
-  results?: DashboardResults;
-}
 
 export interface SubmissionAttempt {
   id: string;

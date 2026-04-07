@@ -1,8 +1,8 @@
 import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
+import type { DashboardSubmission } from "@/api/types";
 import { IconButton } from "@/components/Button/IconButton";
-import type { DashboardSubmission } from "@/features/submissions/model/contracts";
 
 interface ResultsModalProps {
   submission: DashboardSubmission | null;

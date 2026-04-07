@@ -1,13 +1,13 @@
 import { mkdir, readFile, rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
-import type { DashboardSubmission } from "@/features/submissions/model/contracts";
+import type { DashboardSubmission } from "@/api/types";
 import {
   cancelDashboardSubmission,
   createDashboardSubmissionFromUpload,
   listDashboardSubmissions,
-} from "@/features/submissions/server/service";
-import { processNextQueuedAttempt } from "@/features/submissions/server/worker";
+} from "@/server/submissions/service";
+import { processNextQueuedAttempt } from "@/server/submissions/worker";
 import type { AppContext } from "@/server/app-context";
 
 const FIXTURES_DIR = resolve(process.cwd(), "tests", "fixtures");

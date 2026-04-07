@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { seedDemoData } from "@/api/client";
+
 interface DevSeedButtonProps {
   onSeeded: () => Promise<void>;
 }
@@ -13,13 +15,7 @@ export function DevSeedButton({ onSeeded }: DevSeedButtonProps) {
     setIsSeeding(true);
 
     try {
-      const response = await fetch("/api/dev/seed", { method: "POST" });
-      const payload = (await response.json()) as { error?: string };
-
-      if (!response.ok) {
-        throw new Error(payload.error || "The seed request failed.");
-      }
-
+      await seedDemoData();
       await onSeeded();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "The seed request failed.");

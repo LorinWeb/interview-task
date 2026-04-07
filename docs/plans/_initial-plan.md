@@ -8,7 +8,8 @@
 ## Why This Shape
 - The UI only needs one polished screen, so a lightweight SPA is enough.
 - A separate worker process keeps asynchronous processing explicit without introducing queue infrastructure too early.
-- Shared domain logic should live in `src/features/submissions` and `src/server` so the API and worker use the same rules.
+- Shared backend submission logic should live in `src/server/submissions` so the API and worker use the same rules.
+- The frontend should consume the API through generated OpenAPI types and a thin typed client, with React Query handling server-state concerns.
 
 ## Product Surface
 - One page with:
@@ -84,10 +85,13 @@
 ## Repository Structure
 - `server.ts`: Express server and frontend hosting
 - `src/app/*`: frontend entrypoint and app shell
+- `openapi/submissions.yaml`: API contract for the SPA
+- `src/api/*`: generated API types and the typed browser client
+- `src/components/*`: shared UI building blocks
 - `src/features/submissions/components/*`: submission UI components
-- `src/features/submissions/client/*`: browser API/state wiring
-- `src/features/submissions/model/*`: shared domain types
-- `src/features/submissions/server/*`: CSV, repository, service, worker logic
+- `src/features/submissions/client/*`: React Query-powered browser state wiring
+- `src/features/submissions/queries.ts`: submission list query configuration
+- `src/server/submissions/*`: CSV, repository, service, worker logic
 - `src/server/*`: runtime wiring and infrastructure
 - `tests/integration/*`: API-level behavioral tests
 - `tests/e2e/*`: browser behavioral tests
@@ -111,4 +115,5 @@
   - string-based CSV ids
   - `failed_to_process` semantics
   - single-package Vite + Express + worker architecture
+  - generated OpenAPI types plus React Query for frontend server state
   - `DB_SOURCE=remote` as a reserved seam

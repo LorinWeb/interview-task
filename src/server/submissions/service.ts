@@ -1,12 +1,11 @@
+import type { DashboardResults, DashboardSubmission } from "@/api/types";
 import { HttpError } from "@/server/http-error";
 import type { AppContext } from "@/server/app-context";
 import type {
-  DashboardResults,
-  DashboardSubmission,
   SubmissionAttempt,
   SubmissionDetail,
   SubmissionSummary,
-} from "@/features/submissions/model/contracts";
+} from "@/server/submissions/types";
 
 async function createSubmissionFromUpload(context: AppContext, file: File) {
   const storedFileKey = await context.storage.saveUpload(file);

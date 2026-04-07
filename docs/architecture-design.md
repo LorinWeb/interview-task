@@ -5,9 +5,13 @@
 - Separate worker runtime in `src/server/worker-entry.ts`, started alongside the web server by the root scripts.
 - Source code is split by responsibility:
   - app shell in `src/app`
-  - submission feature logic in `src/features/submissions`
-  - runtime infrastructure in `src/server`
+  - generated API types and the typed browser client in `src/api`
+  - shared UI primitives in `src/components`
+  - submission-specific UI and query wiring in `src/features/submissions`
+  - runtime infrastructure and backend submission logic in `src/server`
 - Local persistence uses SQLite plus filesystem-backed upload storage. Uploaded filenames are kept as metadata; stored files use generated keys.
+- The browser consumes the API through a generated OpenAPI contract in `openapi/submissions.yaml`, with TypeScript types emitted to `src/api/generated/types.ts`.
+- Frontend server state uses React Query for list fetching, polling, and mutation-driven refreshes.
 
 ## Key Assumptions
 - CSV `id` is treated as a string, not a number. The requirements text says “numeric” but the example value is non-numeric, so the implementation follows the example and enforces uniqueness instead.
@@ -22,6 +26,14 @@
   - `GET /api/submissions`
   - `POST /api/submissions/:id/cancel`
   - `POST /api/submissions/:id/retry`
+
+## Source Layout
+- `src/app`: app entrypoint, shell, and React Query provider
+- `src/api`: generated OpenAPI types and the typed browser client
+- `src/components`: reusable visual building blocks
+- `src/features/submissions`: submission-specific UI and query/state orchestration
+- `src/server/submissions`: CSV parsing, mapping, repository, service, and worker behavior
+- `src/server`: app context, config, db bootstrap, file storage, and worker entrypoint
 
 ## Data Model
 

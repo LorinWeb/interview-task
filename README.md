@@ -14,15 +14,18 @@ Single-package dataset submission app with a Vite + React frontend, an Express A
 ## Scripts
 - `npm run dev`: clear local runtime data, then start the Express server and worker.
 - `npm run build`: build the Vite frontend into `dist/`.
+- `npm run generate:api`: regenerate TypeScript types from `openapi/submissions.yaml`.
 - `npm run start`: run the production server and worker together.
 - `npm run typecheck`: run TypeScript without emitting files.
 - `npm test`: run the Vitest suite.
 - `npm run test:e2e`: run the Playwright suite against the app.
 
 ## Source Layout
-- `src/app`: app shell, entrypoint, and global styles
-- `src/features/submissions`: submission UI, client, model, and server logic
-- `src/server`: runtime wiring, config, database bootstrap, and file storage
+- `src/app`: app shell, entrypoint, React Query provider, and global styles
+- `src/api`: generated OpenAPI types plus the typed browser API client
+- `src/components`: shared UI building blocks
+- `src/features/submissions`: submission-specific UI and React Query wiring
+- `src/server`: runtime wiring, config, infrastructure, and backend submission logic
 
 ## Environment
 - `PORT`: web server port. Defaults to `3000`.
@@ -37,6 +40,7 @@ Single-package dataset submission app with a Vite + React frontend, an Express A
 - CSV `id` values are treated as strings and must be unique within a file.
 - `failed_to_process` is counted as a completed dataset outcome, not a submission failure.
 - Submission retries create a new attempt internally, but the UI keeps the surface submission-centric.
+- Frontend server state uses React Query; the API contract is defined in `openapi/submissions.yaml` and generated into `src/api/generated/types.ts`.
 
 ## Seeded Demo Data
 In development, the app shows a floating `Seed Data` button at the bottom right. Clicking it recreates the demo submissions from `tests/fixtures`:

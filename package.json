@@ -7,6 +7,7 @@
     "dev": "npx tsx scripts/reset-runtime.ts && concurrently -k -n app,worker -c blue,magenta \"tsx watch server.ts\" \"tsx watch src/server/worker-entry.ts\"",
     "dev:e2e": "PORT=3100 DB_SOURCE=local LOCAL_DB_PATH=tests/.tmp/e2e/app.db UPLOADS_DIR=tests/.tmp/e2e/uploads concurrently -k -n app,worker -c blue,magenta \"tsx server.ts\" \"tsx src/server/worker-entry.ts\"",
     "build": "vite build",
+    "generate:api": "openapi-typescript openapi/submissions.yaml -o src/api/generated/types.ts",
     "start": "NODE_ENV=production concurrently -k -n app,worker -c blue,magenta \"tsx server.ts\" \"tsx src/server/worker-entry.ts\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage",
@@ -15,6 +16,7 @@
     "worker": "tsx src/server/worker-entry.ts"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.96.2",
     "better-sqlite3": "12.8.0",
     "concurrently": "9.2.1",
     "csv-parse": "6.2.1",
@@ -22,6 +24,7 @@
     "lucide-react": "0.546.0",
     "motion": "12.23.24",
     "multer": "2.0.2",
+    "openapi-fetch": "^0.17.0",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
@@ -37,6 +40,7 @@
     "@types/supertest": "6.0.3",
     "@vitejs/plugin-react": "5.0.4",
     "@vitest/coverage-v8": "4.1.2",
+    "openapi-typescript": "^7.13.0",
     "supertest": "7.1.4",
     "tailwindcss": "4.1.16",
     "tsx": "4.21.0",

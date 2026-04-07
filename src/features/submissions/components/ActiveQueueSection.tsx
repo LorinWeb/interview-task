@@ -1,10 +1,10 @@
-import { BarChart3, FileText, Loader2, X } from "lucide-react";
+import { BarChart3, FileText, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { IconButton } from "@/components/Button/IconButton";
 import { ProgressBar } from "@/components/Feedback/ProgressBar";
 import { SurfaceSection } from "@/components/Layout/SurfaceSection";
-import type { DashboardSubmission } from "@/features/submissions/model/contracts";
+import type { DashboardSubmission } from "@/api/types";
 
 interface ActiveQueueSectionProps {
   activeActionId: string | null;
@@ -46,8 +46,6 @@ export function ActiveQueueSection({
               <div className="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center mr-4">
                 {submission.status === "processing" ? (
                   <FileText className="w-6 h-6 text-primary" />
-                ) : submission.status === "cancelling" ? (
-                  <Loader2 className="w-6 h-6 text-primary-container animate-spin" />
                 ) : (
                   <BarChart3 className="w-6 h-6 text-on-surface-variant" />
                 )}

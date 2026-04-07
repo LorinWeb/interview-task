@@ -1,7 +1,7 @@
 import type { Database } from "better-sqlite3";
 
-import { createEmptySummary, type DatasetSummary } from "@/features/submissions/model/contracts";
 import { HttpError } from "@/server/http-error";
+import { createEmptySummary, type DatasetSummary } from "@/server/submissions/types";
 import {
   buildSubmissionDetail,
   mapSummaryRow,
@@ -10,7 +10,7 @@ import {
   type ClaimedAttemptRow,
   type SubmissionRow,
   type SummaryRow,
-} from "@/features/submissions/server/mappers";
+} from "@/server/submissions/mappers";
 
 export class SubmissionRepository {
   constructor(private readonly database: Database) {}
