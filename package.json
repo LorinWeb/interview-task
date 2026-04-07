@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npm run reset:runtime && concurrently -k -n app,worker -c blue,magenta \"tsx watch server.ts\" \"tsx watch src/server/worker-entry.ts\"",
-    "dev:e2e": "PORT=3100 DB_SOURCE=local LOCAL_DB_PATH=.tmp/e2e/app.db UPLOADS_DIR=.tmp/e2e/uploads concurrently -k -n app,worker -c blue,magenta \"tsx server.ts\" \"tsx src/server/worker-entry.ts\"",
+    "dev:e2e": "PORT=3100 DB_SOURCE=local LOCAL_DB_PATH=tests/.tmp/e2e/app.db UPLOADS_DIR=tests/.tmp/e2e/uploads concurrently -k -n app,worker -c blue,magenta \"tsx server.ts\" \"tsx src/server/worker-entry.ts\"",
     "build": "vite build",
     "reset:runtime": "tsx scripts/reset-runtime.ts",
     "seed:data": "tsx scripts/seed-runtime.ts",

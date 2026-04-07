@@ -4,6 +4,7 @@ export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: false,
   globalSetup: "./tests/support/playwright-global-setup.ts",
+  outputDir: "./tests/test-results",
   use: {
     baseURL: "http://localhost:3100",
     trace: "retain-on-failure",

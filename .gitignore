@@ -8,14 +8,14 @@ node_modules/
 
 # Local runtime state
 runtime/
-.tmp/
 
 # Build output
 dist/
 
 # Test output
-coverage/
-test-results/
+tests/.tmp/
+tests/coverage/
+tests/test-results/
 
 # TypeScript incremental cache
 *.tsbuildinfo
