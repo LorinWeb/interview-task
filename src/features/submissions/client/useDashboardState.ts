@@ -11,7 +11,6 @@ const MAX_VISIBLE_PROCESSED_RESULTS = 5;
 export function useDashboardState() {
   const queryClient = useQueryClient();
   const [activeActionId, setActiveActionId] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [clientError, setClientError] = useState<string | null>(null);
   const [resultsModalId, setResultsModalId] = useState<string | null>(null);
   const [completingSubmissionIds, setCompletingSubmissionIds] = useState<Record<string, number>>(
@@ -136,11 +135,9 @@ export function useDashboardState() {
 
   async function handleUpload(file: File) {
     setClientError(null);
-    setMessage(null);
 
     try {
-      const created = await uploadMutation.mutateAsync(file);
-      setMessage(`Queued ${created.filename} for background processing.`);
+      await uploadMutation.mutateAsync(file);
       await refreshSubmissions();
     } catch (requestError) {
       setClientError(getErrorMessage(requestError));
@@ -149,12 +146,10 @@ export function useDashboardState() {
 
   async function handleCancel(submissionId: string) {
     setClientError(null);
-    setMessage(null);
     setActiveActionId(submissionId);
 
     try {
       await cancelMutation.mutateAsync(submissionId);
-      setMessage("Cancellation requested.");
       await refreshSubmissions();
     } catch (requestError) {
       setClientError(getErrorMessage(requestError));
@@ -165,12 +160,10 @@ export function useDashboardState() {
 
   async function handleRetry(submissionId: string) {
     setClientError(null);
-    setMessage(null);
     setActiveActionId(submissionId);
 
     try {
       await retryMutation.mutateAsync(submissionId);
-      setMessage("Retry queued.");
       await refreshSubmissions();
     } catch (requestError) {
       setClientError(getErrorMessage(requestError));
@@ -185,7 +178,6 @@ export function useDashboardState() {
   }
 
   function reportUploadError(message: string) {
-    setMessage(null);
     setClientError(message);
   }
 
@@ -195,7 +187,6 @@ export function useDashboardState() {
     error: clientError ?? getErrorMessage(submissionsQuery.error),
     isLoading: submissionsQuery.isFetching,
     isUploading: uploadMutation.isPending,
-    message,
     processedResults,
     resultsSubmission,
     submissions,

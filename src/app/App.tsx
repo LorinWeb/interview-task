@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 
 import { useDashboardState } from "@/features/submissions/client/useDashboardState";
 import { ActiveQueueSection } from "@/features/submissions/components/ActiveQueueSection";
@@ -22,7 +22,6 @@ export function App() {
     error,
     isLoading,
     isUploading,
-    message,
     openResultsModal,
     processedResults,
     reportUploadError,
@@ -56,18 +55,21 @@ export function App() {
           </motion.p>
         </header>
 
-        <div className="space-y-4 mb-8">
-          {message ? (
-            <div className="rounded-2xl border border-secondary-container bg-secondary-container/50 px-5 py-4 text-on-secondary-container" data-testid="notice-banner">
-              {message}
-            </div>
-          ) : null}
+        <AnimatePresence initial={false}>
           {error ? (
-            <div className="rounded-2xl border border-error-container bg-error-container/40 px-5 py-4 text-error" data-testid="error-banner">
+            <motion.div
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="mb-8 rounded-2xl border border-error-container bg-error-container/40 px-5 py-4 text-error"
+              data-testid="error-banner"
+              exit={{ opacity: 0, scale: 0.98, y: -12 }}
+              initial={{ opacity: 0, scale: 0.98, y: -12 }}
+              key="error-banner"
+              transition={{ duration: 0.22, ease: "easeOut" }}
+            >
               {error}
-            </div>
+            </motion.div>
           ) : null}
-        </div>
+        </AnimatePresence>
 
         <div className="space-y-12">
           <UploadZone
