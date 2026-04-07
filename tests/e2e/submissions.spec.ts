@@ -55,18 +55,55 @@ test("supports cancellation, retry, and idempotent repeated action requests", as
   const repeatedCancel = await request.post(`/api/submissions/${submissionId}/cancel`);
   expect(repeatedCancel.ok()).toBeTruthy();
 
-  await expect(page.getByTestId(`processed-submission-${submissionId}`)).toContainText("cancelled", {
+  await expect(page.getByTestId(`active-submission-${submissionId}`)).toHaveCount(0, {
     timeout: 15000,
   });
-  await expect(page.getByTestId(`retry-submission-${submissionId}`)).toBeVisible();
+  await expect(page.getByTestId(`processed-submission-${submissionId}`)).toContainText(
+    "cancelled",
+    {
+      timeout: 15000,
+    },
+  );
+
+  await expect(page.getByTestId(`retry-submission-${submissionId}`)).toBeVisible({
+    timeout: 15000,
+  });
 
   await page.getByTestId(`retry-submission-${submissionId}`).click();
   const repeatedRetry = await request.post(`/api/submissions/${submissionId}/retry`);
   expect(repeatedRetry.ok()).toBeTruthy();
 
-  await expect(page.getByTestId(`active-submission-${submissionId}`)).toBeVisible({
+  await expect(page.getByTestId(`active-submission-${submissionId}`)).toBeVisible({ timeout: 15000 });
+});
+
+test("lets a stale cancel click win for fast submissions", async ({ page, request }) => {
+  await page.goto("/");
+  await page.getByTestId("upload-input").setInputFiles("tests/fixtures/valid-dataset.csv");
+
+  let submissionId = "";
+
+  await expect.poll(async () => {
+    const response = await request.get("/api/submissions");
+    const submissions = (await response.json()) as Array<{ filename: string; id: string }>;
+    submissionId =
+      submissions.find((submission) => submission.filename === "valid-dataset.csv")?.id ?? "";
+    return submissionId;
+  }).not.toBe("");
+
+  await expect(page.getByTestId(`active-submission-${submissionId}`)).toBeVisible();
+
+  await page.waitForTimeout(700);
+  await page.getByTestId(`cancel-submission-${submissionId}`).click();
+
+  await expect(page.getByTestId(`active-submission-${submissionId}`)).toHaveCount(0, {
     timeout: 15000,
   });
+  await expect(page.getByTestId(`processed-submission-${submissionId}`)).toContainText(
+    "cancelled",
+    {
+      timeout: 15000,
+    },
+  );
 });
 
 test("shows failed submissions with their validation error and no retry action", async ({

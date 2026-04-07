@@ -46,22 +46,22 @@ export function retryDashboardSubmission(context: AppContext, submissionId: stri
 function toDashboardSubmission(
   submission: SubmissionSummary | SubmissionDetail,
 ): DashboardSubmission {
+  const rawStatus = submission.latestAttempt.status;
+  const status = rawStatus === "cancelling" ? "cancelled" : rawStatus;
+
   return {
     id: submission.id,
     filename: submission.originalFilename,
-    status: submission.latestAttempt.status,
+    status,
     progress: submission.latestAttempt.progressPercent,
     createdAt: submission.createdAt,
-    canCancel:
-      submission.latestAttempt.status === "queued" ||
-      submission.latestAttempt.status === "processing" ||
-      submission.latestAttempt.status === "cancelling",
+    canCancel: rawStatus === "queued" || rawStatus === "processing",
     canRetry:
-      submission.latestAttempt.status === "cancelled" ||
-      (submission.latestAttempt.status === "failed" && submission.latestAttempt.retryable),
+      rawStatus === "cancelled" ||
+      (rawStatus === "failed" && submission.latestAttempt.retryable),
     error: submission.latestAttempt.errorText ?? undefined,
     results: getDashboardResults(
-      submission.latestAttempt.status,
+      status,
       submission.latestAttempt.totalRows,
       submission.latestAttempt.summary,
     ),

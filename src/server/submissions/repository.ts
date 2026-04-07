@@ -131,8 +131,19 @@ export class SubmissionRepository {
             `,
           )
           .run({ attemptId: latestAttempt.id, updatedAt: new Date().toISOString() });
+      } else if (latestAttempt.status === "completed") {
+        this.database
+          .prepare(
+            `
+              UPDATE submission_attempts
+              SET status = 'cancelled', failure_kind = 'cancelled', retryable = 1,
+                  finished_at = @finishedAt, updated_at = @finishedAt
+              WHERE id = @attemptId
+            `,
+          )
+          .run({ attemptId: latestAttempt.id, finishedAt: new Date().toISOString() });
       } else if (latestAttempt.status !== "cancelling" && latestAttempt.status !== "cancelled") {
-        throw new HttpError(409, "Only queued or processing submissions can be cancelled.");
+        throw new HttpError(409, "Only queued, processing, or just-completed submissions can be cancelled.");
       }
     });
 
@@ -242,15 +253,15 @@ export class SubmissionRepository {
   }
 
   setAttemptTotalRows(attemptId: string, totalRows: number, updatedAt: string) {
-    this.database
+    return this.database
       .prepare(
         `
           UPDATE submission_attempts
           SET total_rows = @totalRows, updated_at = @updatedAt
-          WHERE id = @attemptId
+          WHERE id = @attemptId AND status = 'processing'
         `,
       )
-      .run({ attemptId, totalRows, updatedAt });
+      .run({ attemptId, totalRows, updatedAt }).changes > 0;
   }
 
   getAttemptStatus(attemptId: string) {
@@ -274,7 +285,7 @@ export class SubmissionRepository {
     summary: DatasetSummary,
     updatedAt: string,
   ) {
-    this.database
+    return this.database
       .prepare(
         `
           UPDATE submission_attempts
@@ -282,26 +293,26 @@ export class SubmissionRepository {
               total_rows = @totalRows,
               summary_json = @summaryJson,
               updated_at = @updatedAt
-          WHERE id = @attemptId
+          WHERE id = @attemptId AND status = 'processing'
         `,
       )
-      .run({ attemptId, processedRows, totalRows, summaryJson: stringifySummary(summary), updatedAt });
+      .run({ attemptId, processedRows, totalRows, summaryJson: stringifySummary(summary), updatedAt }).changes > 0;
   }
 
   markAttemptCompleted(attemptId: string, processedRows: number, totalRows: number, summary: DatasetSummary) {
     const finishedAt = new Date().toISOString();
 
-    this.database
+    return this.database
       .prepare(
         `
           UPDATE submission_attempts
           SET status = 'completed', processed_rows = @processedRows, total_rows = @totalRows,
               summary_json = @summaryJson, failure_kind = NULL, error_text = NULL, retryable = 0,
               finished_at = @finishedAt, updated_at = @finishedAt
-          WHERE id = @attemptId
+          WHERE id = @attemptId AND status = 'processing'
         `,
       )
-      .run({ attemptId, processedRows, totalRows, summaryJson: stringifySummary(summary), finishedAt });
+      .run({ attemptId, processedRows, totalRows, summaryJson: stringifySummary(summary), finishedAt }).changes > 0;
   }
 
   markAttemptFailed(
@@ -310,13 +321,13 @@ export class SubmissionRepository {
   ) {
     const finishedAt = new Date().toISOString();
 
-    this.database
+    return this.database
       .prepare(
         `
           UPDATE submission_attempts
           SET status = 'failed', failure_kind = @failureKind, error_text = @errorText,
               retryable = @retryable, finished_at = @finishedAt, updated_at = @finishedAt
-          WHERE id = @attemptId
+          WHERE id = @attemptId AND status = 'processing'
         `,
       )
       .run({
@@ -325,7 +336,7 @@ export class SubmissionRepository {
         failureKind: input.failureKind,
         finishedAt,
         retryable: Number(input.retryable),
-      });
+      }).changes > 0;
   }
 
   markAttemptCancelled(

@@ -33,11 +33,16 @@ export async function processNextQueuedAttempt(
     const rows = parseDatasetCsv(fileContent);
 
     totalRows = rows.length;
-    context.repository.setAttemptTotalRows(
-      claimedAttempt.id,
-      totalRows,
-      new Date().toISOString(),
-    );
+    if (
+      !context.repository.setAttemptTotalRows(
+        claimedAttempt.id,
+        totalRows,
+        new Date().toISOString(),
+      )
+    ) {
+      context.repository.markAttemptCancelled(claimedAttempt.id, processedRows, totalRows, summary);
+      return claimedAttempt.submission_id;
+    }
 
     while (processedRows < rows.length) {
       if (isCancellationRequested(context, claimedAttempt.id)) {
@@ -61,13 +66,23 @@ export async function processNextQueuedAttempt(
 
       processedRows += batch.length;
 
-      context.repository.updateAttemptProgress(
-        claimedAttempt.id,
-        processedRows,
-        totalRows,
-        summary,
-        new Date().toISOString(),
-      );
+      if (
+        !context.repository.updateAttemptProgress(
+          claimedAttempt.id,
+          processedRows,
+          totalRows,
+          summary,
+          new Date().toISOString(),
+        )
+      ) {
+        context.repository.markAttemptCancelled(
+          claimedAttempt.id,
+          processedRows,
+          totalRows,
+          summary,
+        );
+        return claimedAttempt.submission_id;
+      }
 
       if (processedRows < rows.length) {
         await sleep(context.config.processingBatchDelayMs);
@@ -79,22 +94,39 @@ export async function processNextQueuedAttempt(
       return claimedAttempt.submission_id;
     }
 
-    context.repository.markAttemptCompleted(claimedAttempt.id, processedRows, totalRows, summary);
+    if (
+      !context.repository.markAttemptCompleted(
+        claimedAttempt.id,
+        processedRows,
+        totalRows,
+        summary,
+      )
+    ) {
+      context.repository.markAttemptCancelled(claimedAttempt.id, processedRows, totalRows, summary);
+    }
   } catch (error) {
     if (error instanceof CsvValidationError) {
-      context.repository.markAttemptFailed(claimedAttempt.id, {
-        errorText: error.message,
-        failureKind: "validation",
-        retryable: false,
-      });
+      if (
+        !context.repository.markAttemptFailed(claimedAttempt.id, {
+          errorText: error.message,
+          failureKind: "validation",
+          retryable: false,
+        })
+      ) {
+        context.repository.markAttemptCancelled(claimedAttempt.id, processedRows, totalRows, summary);
+      }
     } else {
       const message = error instanceof Error ? error.message : "Unknown processing error.";
 
-      context.repository.markAttemptFailed(claimedAttempt.id, {
-        errorText: message,
-        failureKind: "system",
-        retryable: true,
-      });
+      if (
+        !context.repository.markAttemptFailed(claimedAttempt.id, {
+          errorText: message,
+          failureKind: "system",
+          retryable: true,
+        })
+      ) {
+        context.repository.markAttemptCancelled(claimedAttempt.id, processedRows, totalRows, summary);
+      }
     }
   }
 

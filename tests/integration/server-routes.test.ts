@@ -82,7 +82,56 @@ describe("server routes", () => {
     });
   });
 
-  it("supports processing cancellation and idempotent retry through the demo-facing routes", async () => {
+  it("returns queued cancellations as processed cancelled submissions", async () => {
+    const { cleanup, context } = await createTestContext();
+    cleanups.push(cleanup);
+
+    const app = createServerApp({ context });
+    const uploadResponse = await uploadFixture(app, "valid-dataset.csv");
+
+    const cancelResponse = await request(app).post(`/api/submissions/${uploadResponse.id}/cancel`);
+
+    expect(cancelResponse.body).toMatchObject({
+      canCancel: false,
+      canRetry: true,
+      status: "cancelled",
+    });
+
+    const listResponse = await request(app).get("/api/submissions");
+    expect(listResponse.body[0]).toMatchObject({
+      id: uploadResponse.id,
+      canCancel: false,
+      canRetry: true,
+      status: "cancelled",
+    });
+  });
+
+  it("lets a stale cancel request win even if the submission already completed", async () => {
+    const { cleanup, context } = await createTestContext();
+    cleanups.push(cleanup);
+
+    const app = createServerApp({ context });
+    const uploadResponse = await uploadFixture(app, "valid-dataset.csv");
+
+    await processNextQueuedAttempt(context, async () => undefined);
+
+    const cancelResponse = await request(app).post(`/api/submissions/${uploadResponse.id}/cancel`);
+    expect(cancelResponse.body).toMatchObject({
+      canCancel: false,
+      canRetry: true,
+      status: "cancelled",
+    });
+
+    const listResponse = await request(app).get("/api/submissions");
+    expect(listResponse.body[0]).toMatchObject({
+      id: uploadResponse.id,
+      canCancel: false,
+      canRetry: true,
+      status: "cancelled",
+    });
+  });
+
+  it("projects processing cancellations as cancelled before the worker reaches its checkpoint", async () => {
     const { cleanup, context } = await createTestContext({ processingBatchDelayMs: 40 });
     cleanups.push(cleanup);
 
@@ -95,9 +144,19 @@ describe("server routes", () => {
 
     const cancelResponse = await request(app).post(`/api/submissions/${uploadResponse.id}/cancel`);
     expect(cancelResponse.body).toMatchObject({
-      canCancel: true,
-      canRetry: false,
-      status: "cancelling",
+      canCancel: false,
+      status: "cancelled",
+    });
+
+    expect(["cancelling", "cancelled"]).toContain(
+      context.repository.getSubmissionDetail(uploadResponse.id)?.latestAttempt.status,
+    );
+
+    const listWhileCancelling = await request(app).get("/api/submissions");
+    expect(listWhileCancelling.body[0]).toMatchObject({
+      id: uploadResponse.id,
+      canCancel: false,
+      status: "cancelled",
     });
 
     releaseBatch.resolve();

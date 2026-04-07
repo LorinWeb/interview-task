@@ -63,7 +63,12 @@ export function useDashboardState() {
       ),
     [submissions],
   );
-  const hasActiveSubmissions = activeQueue.length > 0;
+  const shouldPollSubmissions = submissions.some(
+    (submission) =>
+      submission.status === "queued" ||
+      submission.status === "processing" ||
+      (submission.status === "cancelled" && !submission.canRetry),
+  );
 
   const resultsSubmission = useMemo(
     () =>
@@ -74,7 +79,7 @@ export function useDashboardState() {
   );
 
   useEffect(() => {
-    if (!hasActiveSubmissions) {
+    if (!shouldPollSubmissions) {
       return;
     }
 
@@ -103,7 +108,7 @@ export function useDashboardState() {
       isMounted = false;
       window.clearInterval(intervalId);
     };
-  }, [hasActiveSubmissions]);
+  }, [shouldPollSubmissions]);
 
   async function handleUpload(file: File) {
     setError(null);
