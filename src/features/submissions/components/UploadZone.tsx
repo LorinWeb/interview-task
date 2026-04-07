@@ -59,9 +59,9 @@ export function UploadZone({ isUploading, onInvalidFile, onUpload }: UploadZoneP
           className="hidden"
           data-testid="upload-input"
           onChange={(event) => {
-            handleFile(event.target.files?.[0], () => {
-              event.target.value = "";
-            });
+            const selectedFile = event.target.files?.[0];
+            event.target.value = "";
+            handleFile(selectedFile);
           }}
           ref={fileInputRef}
           type="file"

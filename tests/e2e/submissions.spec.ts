@@ -28,6 +28,32 @@ test("shows the completed outcome summary in the results modal", async ({
   await expect(page.getByTestId("results-modal")).toHaveCount(0);
 });
 
+test("allows uploading the same file again without refreshing", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/");
+  const existingIds = await listSubmissionIds(request, "valid-dataset.csv");
+
+  await page.getByTestId("upload-input").setInputFiles("tests/fixtures/valid-dataset.csv");
+  const firstSubmissionId = await waitForNewSubmissionId(
+    request,
+    "valid-dataset.csv",
+    existingIds,
+  );
+
+  await waitForSubmissionStatus(request, firstSubmissionId, "completed");
+
+  await page.getByTestId("upload-input").setInputFiles("tests/fixtures/valid-dataset.csv");
+  const secondSubmissionId = await waitForNewSubmissionId(
+    request,
+    "valid-dataset.csv",
+    [...existingIds, firstSubmissionId],
+  );
+
+  expect(secondSubmissionId).not.toBe(firstSubmissionId);
+});
+
 test("supports cancellation, retry, and idempotent repeated action requests", async ({
   page,
   request,
